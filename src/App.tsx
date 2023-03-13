@@ -1,60 +1,48 @@
 import { useEffect, useState } from "react"
 import reactLogo from "./assets/react.svg"
-import "./App.css"
-import { getMilliseconds, getSeconds, milliseconds } from "date-fns"
-import {
-	Button,
-	Box,
-	Flex,
-	Text,
-	Heading,
-	Grid,
-	Spacer,
-	Progress
-} from "@chakra-ui/react"
-import { formattedTime, playNotification } from "./utils"
+import { Button, IconButton, Flex, Text, Heading } from "@chakra-ui/react"
+import { formatTime, playNotification } from "./utils"
 import music from "./assets/track1.mp3"
+import { initialTimer } from "./config"
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
+
+import { RxReset, RxSpeakerOff, RxSpeakerLoud } from "react-icons/rx"
+
+const notify = (msg: string) =>
+	toast.error(msg, {
+		position: "top-center",
+		autoClose: 5000,
+		hideProgressBar: false,
+		closeOnClick: true,
+		draggable: true,
+		theme: "colored"
+	})
 
 function App() {
 	const [time, setTime] = useState(0)
 	const [timerStart, setTimerStart] = useState(false)
-	const [audio, setAudio] = useState(new Audio(music))
-	const [isPlaying, setIsPlaying] = useState(false)
+	const [audio] = useState(new Audio(music)) // This will expose the music
 	const [isMuted, setIsMuted] = useState(false)
 
-	// create/set the times
-	const buttons = [
-		{
-			// value: 1.5e3,
-			value: 3,
-			display: "Pomodoro"
-		},
-		{
-			value: 300,
-			display: "Short Brake"
-		},
-
-		{
-			value: 900,
-			display: "Long Brake"
-		}
-	]
-
-	// Toggles whenever the user clicks the start button
+	// Toggles when the user clicks the start button
 	const toggleTimer = () => {
-		if (!time) return // Disable clicks if "NO" timer is set
+		if (!time) {
+			notify(" You need to reset the timer 😆 ")
+			return
+		}
 		setTimerStart(!timerStart)
 	}
 
-	// Runs whenever the user muts
+	// Runs whenever the user mutes
 	useEffect(() => {
 		isMuted ? (audio.muted = true) : (audio.muted = false)
 	}, [isMuted])
 
 	// Runs when the page loads
 	useEffect(() => {
-		console.log(timerStart)
-		document.title = "Pomodoro Timer"
+		// console.log(timerStart)
+		// document.title = "Pomodoro Timer"
 	}, [])
 
 	useEffect(() => {
@@ -63,6 +51,8 @@ function App() {
 			if (timerStart && time) {
 				audio.loop = true
 				audio.play()
+				notify("Pomodoro started 🏁")
+				playNotification()
 			} else {
 				audio.pause()
 			}
@@ -70,25 +60,26 @@ function App() {
 		loopAudio()
 	}, [timerStart])
 
+	// This will run the code every 1000 seconds
 	useEffect(() => {
 		const interval = setInterval(() => {
 			if (timerStart) {
 				if (time > 0) {
 					setTime(time - 1)
 				} else if (time === 0 && timerStart) {
-					playNotification(timerStart)
+					playNotification()
 					audio.pause()
+					notify(" Nice one! You don finish! 🎉")
 					clearInterval(interval)
 				}
 			}
 		}, 1000)
-		document.title = `${formattedTime(time)} - Remaining`
+		document.title = `${formatTime(time)} - Remaining`
 		return () => clearInterval(interval)
 	}, [timerStart, time])
 
 	return (
 		<Flex
-			// bg="gray.600"
 			bgGradient="linear(to-tl, red.800, red.900)"
 			minH="100vh"
 			justifyContent="center"
@@ -117,13 +108,14 @@ function App() {
 				shadow="sm"
 			>
 				<Flex gap="5">
-					{buttons.map(({ value, display }) => (
+					{initialTimer.map(({ value, display }) => (
 						<Button
 							key={value}
-							colorScheme="whiteAlpha"
+							colorScheme="blackAlpha"
 							color="white"
 							textTransform={"uppercase"}
 							fontWeight="light"
+							letterSpacing="wide"
 							onClick={() => {
 								setTimerStart(false)
 								setTime(value)
@@ -140,9 +132,20 @@ function App() {
 					fontFamily="Montserrat"
 					letterSpacing={"wider"}
 				>
-					{formattedTime(time)}
+					{formatTime(time)}
 				</Text>
-				<Flex gap={30}>
+
+				<Flex gap={30} alignItems="center">
+					<IconButton
+						aria-label="reset timer"
+						title="reset timer"
+						icon={<RxReset />}
+						colorScheme="blackAlpha"
+						onClick={() => {
+							setTimerStart(false)
+							setTime(initialTimer[0].value)
+						}}
+					/>
 					<Button
 						py="7"
 						px="10"
@@ -152,22 +155,18 @@ function App() {
 						colorScheme={timerStart ? "gray" : "red"}
 						onClick={toggleTimer}
 					>
-						{!timerStart ? "Start" : `${time === 0 ? "Stop" : "Pause"}`}
+						{!timerStart ? "Start" : `${time === 0 ? "Done" : "Pause"}`}
 					</Button>
-					{/* TODO: Add Button to reset timer */}
-
-					<Button
+					<IconButton
+						aria-label="Turn sounds off"
+						title="Turn sounds off"
+						colorScheme="blackAlpha"
+						icon={isMuted ? <RxSpeakerOff /> : <RxSpeakerLoud />}
 						onClick={() => setIsMuted(!isMuted)}
-						py="7"
-						px="10"
-						fontSize={"2xl"}
-						textTransform="uppercase"
-						letterSpacing="wider"
-					>
-						{isMuted ? "Unmute" : "Mute"}
-					</Button>
+					/>
 				</Flex>
 			</Flex>
+			<ToastContainer />
 		</Flex>
 	)
 }
