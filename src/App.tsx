@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react"
-import reactLogo from "./assets/react.svg"
 import { Button, IconButton, Flex, Text, Heading } from "@chakra-ui/react"
-import { formatTime, playNotification } from "./utils"
-import music from "./assets/track1.mp3"
-import { initialTimer } from "./config"
 import { ToastContainer, toast } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-
 import { RxReset, RxSpeakerOff, RxSpeakerLoud } from "react-icons/rx"
+import { formatTime, playNotification } from "./utils"
+import { initialTimer } from "./config"
+import music from "./assets/track1.mp3"
+import reactLogo from "./assets/react.svg"
+import "react-toastify/dist/ReactToastify.css"
 
 const notify = (msg: string) =>
 	toast.error(msg, {
@@ -42,7 +41,7 @@ function App() {
 	// Runs when the page loads
 	useEffect(() => {
 		// console.log(timerStart)
-		// document.title = "Pomodoro Timer"
+		document.title = "🍅 Pomodoro Timer"
 	}, [])
 
 	useEffect(() => {
