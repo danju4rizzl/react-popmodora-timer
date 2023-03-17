@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react"
-import { Button, IconButton, Flex, Text, Heading } from "@chakra-ui/react"
+import {
+	Button,
+	IconButton,
+	Flex,
+	Text,
+	Heading,
+	CircularProgress
+} from "@chakra-ui/react"
 import { ToastContainer, toast } from "react-toastify"
 import { RxReset, RxSpeakerOff, RxSpeakerLoud } from "react-icons/rx"
 import { formatTime, playNotification } from "./utils"
 import { initialTimer } from "./config"
 import music from "./assets/track1.mp3"
-import reactLogo from "./assets/react.svg"
 import "react-toastify/dist/ReactToastify.css"
 
 const notify = (msg: string) =>
@@ -83,8 +89,6 @@ function App() {
 			minH="100vh"
 			justifyContent="center"
 			alignItems="center"
-			backdropFilter="auto"
-			backdropBlur="8px"
 			flexDirection="column"
 			gap={6}
 		>
@@ -98,15 +102,15 @@ function App() {
 			</Heading>
 
 			<Flex
-				bgGradient="linear(to-bl, red.700, red.600)"
-				p={12}
-				h="100%"
+				bgGradient="linear(to-b, red.700, red.900)"
+				p={{ base: 6, md: 9, lg: 12 }}
 				rounded="2xl"
 				alignItems="center"
 				flexDirection="column"
-				shadow="sm"
+				shadow="dark-lg"
+				// w={{ base: "24rem", md: "40rem", lg: "50rem" }}
 			>
-				<Flex gap="5">
+				<Flex gap={{ base: 2, md: 5 }}>
 					{initialTimer.map(({ value, display }) => (
 						<Button
 							key={value}
@@ -119,6 +123,8 @@ function App() {
 								setTimerStart(false)
 								setTime(value)
 							}}
+							fontSize={{ base: "2xl", md: "medium", lg: "3xl" }}
+							size={{ base: "xs", md: "md", lg: "lg" }}
 						>
 							{display}
 						</Button>
@@ -126,10 +132,10 @@ function App() {
 				</Flex>
 				<Text
 					fontWeight="bold"
-					fontSize="9xl"
+					fontSize={{ base: "5xl", md: "7xl", lg: "9xl" }}
 					color="white"
 					fontFamily="Montserrat"
-					letterSpacing={"wider"}
+					letterSpacing="wider"
 				>
 					{formatTime(time)}
 				</Text>
@@ -146,8 +152,7 @@ function App() {
 						}}
 					/>
 					<Button
-						py="7"
-						px="10"
+						size={["sm", "md", "lg"]}
 						fontSize={"2xl"}
 						textTransform="uppercase"
 						letterSpacing="wider"
