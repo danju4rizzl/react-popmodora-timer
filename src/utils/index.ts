@@ -1,5 +1,4 @@
 import notificationSound from "../assets/notificationSound.mp3"
-import music from "../../public/track1.mp3"
 
 
 export const playNotification = () => {
@@ -7,10 +6,10 @@ export const playNotification = () => {
   return audio.play()
 }
 
-
 export const formatTime = (time: number) => {
-  return `${Math.floor(time / 60) < 10
-    ? `0${Math.floor(time / 60)}`
-    : `${Math.floor(time / 60)}`
-    }:${time % 60 < 10 ? `0${time % 60}` : time % 60}`
+  const format = (value: number) => (value < 10 ? `0${value}` : `${value}`);
+  const minutes = Math.floor(time / 60);
+  const seconds = time % 60;
+
+  return `${format(minutes)}:${format(seconds)}`;
 }
