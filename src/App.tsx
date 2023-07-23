@@ -166,9 +166,17 @@ function App() {
 					</Flex>
 
 					<Box>
-						<Select onChange={handleTrackChange}>
+						<Select
+							onChange={handleTrackChange}
+							color="white"
+							bg="blackAlpha.700"
+						>
 							{allTracks.map((track) => (
-								<option key={track.trackTitle} value={track.trackUrl}>
+								<option
+									key={track.trackTitle}
+									value={track.trackUrl}
+									style={{ background: "RGBA(0, 0, 0, 0.64)" }}
+								>
 									{track.trackTitle}
 								</option>
 							))}
