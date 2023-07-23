@@ -1,39 +1,51 @@
-import { useEffect, useState } from "react"
+import { ChangeEvent, useEffect, useState } from "react"
 import {
 	Button,
 	IconButton,
 	Flex,
 	Text,
-	Heading,
-	CircularProgress
+	Select,
+	Box,
+	useToast
 } from "@chakra-ui/react"
-import { ToastContainer, toast } from "react-toastify"
 import { RxReset, RxSpeakerOff, RxSpeakerLoud } from "react-icons/rx"
 import { formatTime, playNotification } from "./utils"
-import { initialTimer } from "./config"
-import music from "./assets/track1.mp3"
+import { initialTimer, allTracks } from "./config"
+// import music from "./assets/track1.mp3"
 import "react-toastify/dist/ReactToastify.css"
-
-const notify = (msg: string) =>
-	toast.error(msg, {
-		position: "top-center",
-		autoClose: 5000,
-		hideProgressBar: false,
-		closeOnClick: true,
-		draggable: true,
-		theme: "colored"
-	})
+import Title from "./components/Title"
+import TimerControls from "./components/TimerControls"
 
 function App() {
 	const [time, setTime] = useState(0)
 	const [timerStart, setTimerStart] = useState(false)
-	const [audio] = useState(new Audio(music)) // This will expose the music
+	const [trackState, setTrackState] = useState(allTracks[0].trackUrl)
 	const [isMuted, setIsMuted] = useState(false)
+	const [audio, setAudio] = useState(new Audio(allTracks[0].trackUrl)) // This will expose the music
+	const toast = useToast()
+
+	const handleTrackChange = (e: ChangeEvent<HTMLSelectElement>) => {
+		const selectedTrack = e.target.value
+		console.log(selectedTrack)
+		setTrackState(selectedTrack)
+		setAudio(new Audio(selectedTrack))
+	}
+
+	// Deejay continue here you to refactor the timer controls
+	const handleTimerControl = (e: number) => {
+		setTimerStart(false)
+		setTime(e)
+	}
 
 	// Toggles when the user clicks the start button
 	const toggleTimer = () => {
 		if (!time) {
-			notify(" You need to reset the timer 😆 ")
+			toast({
+				title: "Reset the timer ",
+				status: "warning",
+				duration: 9000,
+				isClosable: true
+			})
 			return
 		}
 		setTimerStart(!timerStart)
@@ -46,17 +58,21 @@ function App() {
 
 	// Runs when the page loads
 	useEffect(() => {
-		// console.log(timerStart)
 		document.title = "🍅 Pomodoro Timer"
 	}, [])
 
+	// This loop will only run when the timer is running
 	useEffect(() => {
-		// This loop will only run when the timer is running
 		function loopAudio() {
 			if (timerStart && time) {
 				audio.loop = true
 				audio.play()
-				notify("Pomodoro started 🏁")
+				toast({
+					title: "Timer started",
+					status: "info",
+					duration: 9000,
+					isClosable: true
+				})
 				playNotification()
 			} else {
 				audio.pause()
@@ -74,7 +90,13 @@ function App() {
 				} else if (time === 0 && timerStart) {
 					playNotification()
 					audio.pause()
-					notify(" Nice one! You don finish! 🎉")
+					toast({
+						title: "Finished",
+						description: "Nice one! You don finish! 🎉",
+						status: "success",
+						duration: 9000,
+						isClosable: true
+					})
 					clearInterval(interval)
 				}
 			}
@@ -84,95 +106,80 @@ function App() {
 	}, [timerStart, time])
 
 	return (
-		<Flex
-			bgGradient="linear(to-tl, red.800, red.900)"
-			minH="100vh"
-			justifyContent="center"
-			alignItems="center"
-			flexDirection="column"
-			gap={6}
-		>
-			<Heading
-				color="white"
-				fontWeight="thin"
-				letterSpacing="1.2px"
-				textTransform={"uppercase"}
-			>
-				Pomodoro timer
-			</Heading>
-
+		<>
 			<Flex
-				bgGradient="linear(to-b, red.700, red.900)"
-				p={{ base: 6, md: 9, lg: 12 }}
-				rounded="2xl"
+				bgGradient="linear(to-tl, red.800, red.900)"
+				minH="100vh"
+				justifyContent="center"
 				alignItems="center"
 				flexDirection="column"
-				shadow="dark-lg"
-				// w={{ base: "24rem", md: "40rem", lg: "50rem" }}
+				gap={6}
 			>
-				<Flex gap={{ base: 2, md: 5 }}>
-					{initialTimer.map(({ value, display }) => (
-						<Button
-							key={value}
+				<Title content="Pomodoro timer" />
+				<Flex
+					bgGradient="linear(to-b, red.700, red.900)"
+					p={{ base: 6, md: 9, lg: 12 }}
+					rounded="2xl"
+					alignItems="center"
+					flexDirection="column"
+					shadow="dark-lg"
+				>
+					<TimerControls data={initialTimer} onClick={handleTimerControl} />
+					<Text
+						fontWeight="bold"
+						fontSize={{ base: "5xl", md: "7xl", lg: "9xl" }}
+						color="white"
+						fontFamily="Montserrat"
+						letterSpacing="wider"
+					>
+						{formatTime(time)}
+					</Text>
+
+					<Flex gap={30} alignItems="center" mb={3}>
+						<IconButton
+							aria-label="reset timer"
+							title="reset timer"
+							icon={<RxReset />}
 							colorScheme="blackAlpha"
-							color="white"
-							textTransform={"uppercase"}
-							fontWeight="light"
-							letterSpacing="wide"
 							onClick={() => {
 								setTimerStart(false)
-								setTime(value)
+								setTime(initialTimer[0].value)
 							}}
-							fontSize={{ base: "2xl", md: "medium", lg: "3xl" }}
-							size={{ base: "xs", md: "md", lg: "lg" }}
+						/>
+						<Button
+							size={["sm", "md", "lg"]}
+							fontSize={"2xl"}
+							textTransform="uppercase"
+							letterSpacing="wider"
+							colorScheme={timerStart ? "gray" : "red"}
+							onClick={toggleTimer}
 						>
-							{display}
+							{!timerStart ? "Start" : `${time === 0 ? "Done" : "Pause"}`}
 						</Button>
-					))}
-				</Flex>
-				<Text
-					fontWeight="bold"
-					fontSize={{ base: "5xl", md: "7xl", lg: "9xl" }}
-					color="white"
-					fontFamily="Montserrat"
-					letterSpacing="wider"
-				>
-					{formatTime(time)}
-				</Text>
+						<IconButton
+							aria-label="Turn sounds off"
+							title="Turn sounds off"
+							colorScheme="blackAlpha"
+							icon={isMuted ? <RxSpeakerOff /> : <RxSpeakerLoud />}
+							onClick={() => setIsMuted(!isMuted)}
+						/>
+					</Flex>
 
-				<Flex gap={30} alignItems="center">
-					<IconButton
-						aria-label="reset timer"
-						title="reset timer"
-						icon={<RxReset />}
-						colorScheme="blackAlpha"
-						onClick={() => {
-							setTimerStart(false)
-							setTime(initialTimer[0].value)
-						}}
-					/>
-					<Button
-						size={["sm", "md", "lg"]}
-						fontSize={"2xl"}
-						textTransform="uppercase"
-						letterSpacing="wider"
-						colorScheme={timerStart ? "gray" : "red"}
-						onClick={toggleTimer}
-					>
-						{!timerStart ? "Start" : `${time === 0 ? "Done" : "Pause"}`}
-					</Button>
-					<IconButton
-						aria-label="Turn sounds off"
-						title="Turn sounds off"
-						colorScheme="blackAlpha"
-						icon={isMuted ? <RxSpeakerOff /> : <RxSpeakerLoud />}
-						onClick={() => setIsMuted(!isMuted)}
-					/>
+					<Box>
+						<Select onChange={handleTrackChange}>
+							{allTracks.map((track) => (
+								<option key={track.trackTitle} value={track.trackUrl}>
+									{track.trackTitle}
+								</option>
+							))}
+						</Select>
+					</Box>
 				</Flex>
 			</Flex>
-			<ToastContainer />
-		</Flex>
+		</>
 	)
 }
 
 export default App
+
+//⚠️ Danjuma Remember continue code refactoring the app code
