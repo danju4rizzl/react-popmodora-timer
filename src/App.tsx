@@ -1,68 +1,27 @@
 import { useEffect, useState } from "react"
-import {
-	Button,
-	IconButton,
-	Flex,
-	Text,
-	Heading,
-	CircularProgress
-} from "@chakra-ui/react"
-import { ToastContainer, toast } from "react-toastify"
-import { RxReset, RxSpeakerOff, RxSpeakerLoud } from "react-icons/rx"
-import { formatTime, playNotification } from "./utils"
+import { Button, Flex, Heading, useToast } from "@chakra-ui/react"
+import { formatTime, playNotificationSound } from "./utils"
 import { initialTimer } from "./config"
-import music from "./assets/track1.mp3"
-import "react-toastify/dist/ReactToastify.css"
-
-const notify = (msg: string) =>
-	toast.error(msg, {
-		position: "top-center",
-		autoClose: 5000,
-		hideProgressBar: false,
-		closeOnClick: true,
-		draggable: true,
-		theme: "colored"
-	})
+import Time from "./components/Time"
+import PlayButton from "./components/PlayButton"
+import RestButton from "./components/RestButton"
 
 function App() {
 	const [time, setTime] = useState(0)
 	const [timerStart, setTimerStart] = useState(false)
-	const [audio] = useState(new Audio(music)) // This will expose the music
-	const [isMuted, setIsMuted] = useState(false)
 
-	// Toggles when the user clicks the start button
-	const toggleTimer = () => {
-		if (!time) {
-			notify(" You need to reset the timer 😆 ")
-			return
+	const toast = useToast()
+
+	// This will run ONLY when the timer has started or stopped
+	useEffect(() => {
+		if (timerStart) {
+			playNotificationSound()
+			toast({
+				title: "Timer has started",
+				status: "success",
+				position: "top-right"
+			})
 		}
-		setTimerStart(!timerStart)
-	}
-
-	// Runs whenever the user mutes
-	useEffect(() => {
-		isMuted ? (audio.muted = true) : (audio.muted = false)
-	}, [isMuted])
-
-	// Runs when the page loads
-	useEffect(() => {
-		// console.log(timerStart)
-		document.title = "🍅 Pomodoro Timer"
-	}, [])
-
-	useEffect(() => {
-		// This loop will only run when the timer is running
-		function loopAudio() {
-			if (timerStart && time) {
-				audio.loop = true
-				audio.play()
-				notify("Pomodoro started 🏁")
-				playNotification()
-			} else {
-				audio.pause()
-			}
-		}
-		loopAudio()
 	}, [timerStart])
 
 	// This will run the code every 1000 seconds
@@ -72,9 +31,12 @@ function App() {
 				if (time > 0) {
 					setTime(time - 1)
 				} else if (time === 0 && timerStart) {
-					playNotification()
-					audio.pause()
-					notify(" Nice one! You don finish! 🎉")
+					playNotificationSound()
+					toast({
+						title: "Timer has stopped ",
+						status: "error",
+						position: "top-right"
+					})
 					clearInterval(interval)
 				}
 			}
@@ -108,7 +70,6 @@ function App() {
 				alignItems="center"
 				flexDirection="column"
 				shadow="dark-lg"
-				// w={{ base: "24rem", md: "40rem", lg: "50rem" }}
 			>
 				<Flex gap={{ base: 2, md: 5 }}>
 					{initialTimer.map(({ value, display }) => (
@@ -130,47 +91,31 @@ function App() {
 						</Button>
 					))}
 				</Flex>
-				<Text
-					fontWeight="bold"
-					fontSize={{ base: "5xl", md: "7xl", lg: "9xl" }}
-					color="white"
-					fontFamily="Montserrat"
-					letterSpacing="wider"
-				>
-					{formatTime(time)}
-				</Text>
+				<Time currentTime={time} />
 
-				<Flex gap={30} alignItems="center">
-					<IconButton
-						aria-label="reset timer"
-						title="reset timer"
-						icon={<RxReset />}
-						colorScheme="blackAlpha"
-						onClick={() => {
+				<Flex alignItems="center" gap={2}>
+					<RestButton
+						handleOnClick={() => {
 							setTimerStart(false)
 							setTime(initialTimer[0].value)
 						}}
 					/>
-					<Button
-						size={["sm", "md", "lg"]}
-						fontSize={"2xl"}
-						textTransform="uppercase"
-						letterSpacing="wider"
-						colorScheme={timerStart ? "gray" : "red"}
-						onClick={toggleTimer}
-					>
-						{!timerStart ? "Start" : `${time === 0 ? "Done" : "Pause"}`}
-					</Button>
-					<IconButton
-						aria-label="Turn sounds off"
-						title="Turn sounds off"
-						colorScheme="blackAlpha"
-						icon={isMuted ? <RxSpeakerOff /> : <RxSpeakerLoud />}
-						onClick={() => setIsMuted(!isMuted)}
+
+					<PlayButton
+						isStarted={timerStart}
+						currentTime={time}
+						handleOnClick={() => {
+							!time
+								? toast({
+										title: "You need to set a timer first",
+										status: "warning",
+										position: "top-right"
+								  })
+								: setTimerStart(!timerStart)
+						}}
 					/>
 				</Flex>
 			</Flex>
-			<ToastContainer />
 		</Flex>
 	)
 }
